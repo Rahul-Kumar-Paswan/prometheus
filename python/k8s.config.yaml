@@ -1,0 +1,57 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-python-app
+  labels:
+    app: prometheus-python-app
+spec:
+  selector:
+    matchLabels:
+      app: prometheus-python-app 
+  template:
+    metadata:
+      labels:
+        app: prometheus-python-app 
+    spec:
+      containers:
+        - name: prometheus-container-1
+          image: rahulkumarpaswan/prometheus-image:1.0
+          ports:
+          - containerPort: 8000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-python-app
+  labels:
+    app: prometheus-python-app
+spec:
+  type: ClusterIP
+  selector:
+    app: prometheus-python-app
+  ports:
+  - name: service
+    protocol: TCP
+    port: 8000
+    targetPort: 8000
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: monitoring-python-app
+  labels:
+    release: monitoring
+    app: prometheus-python-app
+spec:
+  endpoints:
+  - path: /
+    port: service
+    targetPort: 8000
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels: 
+      app: prometheus-python-app
